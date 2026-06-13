@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}Resultado de pago{% endblock %}
+{% block content %}
+<div class="card"><h1>Pago {{ resultado }}</h1><p>Pedido #{{ id_pedido }}. El estado final del pago se actualizará por webhook de Mercado Pago cuando la plataforma confirme la operación.</p></div>
+{% endblock %}

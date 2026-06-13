@@ -1,0 +1,13 @@
+{
+  "name": "JugueteríaBot Robles Outlet",
+  "short_name": "JugueteríaBot",
+  "start_url": "/panel",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#111111",
+  "description": "Panel administrativo instalable como app para pedidos, inventario, ventas y notificaciones.",
+  "icons": [
+    { "src": "/static/logo_robles.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/static/logo_robles.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

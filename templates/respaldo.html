@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Respaldo y restauración{% endblock %}
+{% block content %}
+<h1>Respaldo / restauración</h1>
+<p class="muted">Crea archivos .bak de SQL Server desde el panel. La restauración requiere permisos de administrador SQL y cerrará conexiones activas.</p>
+{% if mensaje %}<div class="alert-success">{{ mensaje }}</div>{% endif %}
+{% if error %}<div class="alert-error">{{ error }}</div>{% endif %}
+<section class="form-card"><h2>Crear respaldo</h2><form method="post" action="/panel/respaldo/crear"><button class="btn" type="submit">Crear respaldo ahora</button></form></section>
+<section class="form-card"><h2>Restaurar respaldo existente</h2><form method="post" action="/panel/respaldo/restaurar"><label>Archivo</label><select name="archivo" required>{% for r in respaldos %}<option value="{{ r.name }}">{{ r.name }}</option>{% endfor %}</select><button class="btn btn-danger" type="submit" onclick="return confirm('Esto reemplazará la base actual. ¿Continuar?')">Restaurar</button></form></section>
+<table><thead><tr><th>Archivo</th><th>Tamaño</th><th>Fecha</th></tr></thead><tbody>{% for r in respaldos %}<tr><td>{{ r.name }}</td><td>{{ (r.stat().st_size / 1024 / 1024)|round(2) }} MB</td><td>{{ r.stat().st_mtime }}</td></tr>{% endfor %}</tbody></table>
+{% endblock %}

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Panel Juguetería{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="manifest" href="/static/manifest.webmanifest">
+    <meta name="theme-color" content="#111111">
+    <link rel="stylesheet" href="/static/panel.css">
+</head>
+<body>
+    {% if request.url.path == '/panel' %}
+    <div class="dashboard-entry" aria-hidden="true">
+        <div class="dashboard-entry-card">
+            <img src="/static/logo_robles.png" alt="Robles Outlet" class="dashboard-entry-logo">
+            <div class="dashboard-entry-title">Robles Outlet</div>
+            <div class="dashboard-entry-subtitle">Cargando panel administrativo</div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="navbar">
+        <div class="navbar-brand">
+            <img src="/static/logo_robles.png" alt="Robles Outlet" class="navbar-logo">
+            <span>Robles Outlet</span>
+        </div>
+
+        <a href="/panel">Dashboard</a>
+
+        {% if request.session.get('rol_panel') == 'admin' %}
+            <a href="/panel/juguetes">Juguetes</a>
+            <a href="/panel/expos">Expos</a>
+            <a href="/panel/proveedores">Proveedores</a>
+            <a href="/panel/entradas">Entradas</a>
+            <a href="/panel/ventas">Ventas</a>
+            <a href="/panel/ventas/manual">Venta manual</a>
+            <a href="/panel/cortes">Cortes</a>
+            <a href="/panel/pagos">Pagos</a>
+            <a href="/panel/cfdi">CFDI</a>
+            <a href="/panel/usuarios">Usuarios</a>
+            <a href="/panel/respaldo">Respaldo</a>
+            <a href="/panel/consultas">Consultas</a>
+            <a href="/panel/clientes">Clientes</a>
+            <a href="/panel/diagnostico">Diagnóstico</a>
+        {% endif %}
+
+        {% if request.session.get('rol_panel') in ['vendedor','caja'] %}
+            <a href="/panel/ventas/manual">Venta manual</a>
+            {% if request.session.get('rol_panel') == 'caja' %}<a href="/panel/cortes">Cortes</a>{% endif %}
+        {% endif %}
+        <a href="/panel/pedidos">Pedidos</a>
+
+        {% if request.session.get('usuario_panel') %}
+            <span class="navbar-session">
+                Usuario: {{ request.session.get('usuario_panel') }} | Rol: {{ request.session.get('rol_panel') }} |
+                <a href="/panel/logout">Salir</a>
+            </span>
+        {% endif %}
+    </div>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/panel-react.js"></script>
+    <script src="/static/panel-gsap.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function(){ navigator.serviceWorker.register('/static/service-worker.js').catch(function(){}); });
+      }
+    </script>
+</body>
+</html>

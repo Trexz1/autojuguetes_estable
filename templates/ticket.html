@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Ticket #{{ pedido.id_pedido }}{% endblock %}
+{% block content %}
+<div class="acciones no-print"><a class="btn" href="/panel/ventas">Volver a ventas</a><button class="btn btn-entregar" onclick="window.print()">Imprimir ticket</button></div>
+<section class="ticket-print">
+  <div class="ticket-logo"><img src="/static/logo_robles.png" alt="Robles Outlet"><h1>Robles Outlet</h1><p>Ticket de venta</p></div>
+  <p><strong>Folio:</strong> #{{ pedido.id_pedido }}</p><p><strong>Fecha:</strong> {{ pedido.fecha_entregado or pedido.fecha_pedido }}</p><p><strong>Cliente:</strong> {{ pedido.cliente }}</p><p><strong>Teléfono:</strong> {{ pedido.telefono }}</p>
+  <hr>
+  {% for d in detalles %}<div class="ticket-line"><span>{{ d.juguete }} x{{ d.cantidad }}</span><strong>${{ "%.2f"|format(d.subtotal or 0) }}</strong></div><small>${{ "%.2f"|format(d.precio_unitario or 0) }} unitario</small>{% endfor %}
+  {% if pedido.costo_envio and pedido.costo_envio > 0 %}<div class="ticket-line"><span>Envío a domicilio</span><strong>${{ "%.2f"|format(pedido.costo_envio or 0) }}</strong></div>{% endif %}
+  <hr><div class="ticket-total"><span>Total</span><strong>${{ "%.2f"|format(pedido.total or 0) }}</strong></div><p class="ticket-gracias">Gracias por tu compra.</p>
+</section>
+<pre class="ticket-text no-print">{{ ticket_texto }}</pre>
+{% endblock %}

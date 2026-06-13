@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Editar pedido | Panel{% endblock %}
+
+{% block content %}
+<h1>Editar pedido #{{ pedido.id_pedido }}</h1>
+
+<form method="post" action="/panel/pedidos/editar/{{ pedido.id_pedido }}">
+    <label for="estado">Estado</label>
+    <select name="estado" id="estado" required>
+        <option value="Pendiente" {% if pedido.estado == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+        <option value="En proceso" {% if pedido.estado == 'En proceso' %}selected{% endif %}>En proceso</option>
+        <option value="Entregado" {% if pedido.estado == 'Entregado' %}selected{% endif %}>Entregado</option>
+        <option value="Cancelado" {% if pedido.estado == 'Cancelado' %}selected{% endif %}>Cancelado</option>
+    </select>
+
+    <label for="metodo_entrega">Método de entrega</label>
+    <select name="metodo_entrega" id="metodo_entrega" required>
+        <option value="Domicilio" {% if pedido.metodo_entrega == 'Domicilio' %}selected{% endif %}>Domicilio</option>
+        <option value="Expo" {% if pedido.metodo_entrega == 'Expo' %}selected{% endif %}>Expo</option>
+    </select>
+
+    <label for="direccion_entrega">Dirección de entrega</label>
+    <input type="text" name="direccion_entrega" id="direccion_entrega" value="{{ pedido.direccion_entrega or '' }}">
+
+    <label for="referencia_entrega">Referencia de entrega</label>
+    <input type="text" name="referencia_entrega" id="referencia_entrega" value="{{ pedido.referencia_entrega or '' }}">
+
+    <label for="observaciones">Observaciones</label>
+    <textarea name="observaciones" id="observaciones">{{ pedido.observaciones or '' }}</textarea>
+
+    <div class="acciones">
+        <button type="submit" class="btn btn-guardar">Guardar cambios</button>
+        <a href="/panel/pedidos" class="btn btn-cancelar">Cancelar</a>
+    </div>
+</form>
+{% endblock %}

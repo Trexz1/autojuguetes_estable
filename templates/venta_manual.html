@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Venta manual | Panel{% endblock %}
+{% block content %}
+<h1>Venta manual / expos</h1>
+<p class="muted">Registra ventas hechas en mostrador o expos. Al confirmar, se descuenta stock y se genera ticket.</p>
+{% if error %}<div class="alert-error">{{ error }}</div>{% endif %}
+
+<div class="grid-two">
+  <section class="form-card">
+    <h2>Modo escritorio</h2>
+    <label>Buscar por nombre, SKU o código</label>
+    <input id="busqueda-producto" type="text" placeholder="Ej. Stitch, Oso Gigante, 750...">
+    <button type="button" class="btn" onclick="buscarProductos()">Buscar</button>
+    <div id="resultados-productos" class="result-list"></div>
+  </section>
+
+  <section class="form-card mobile-scanner-card">
+    <h2>Modo teléfono</h2>
+    <p class="muted">Abre la cámara, escanea el código y el producto se agrega automáticamente. Si escaneas el mismo producto varias veces, aumenta la cantidad.</p>
+    <button type="button" class="btn" onclick="iniciarScanner()">Abrir cámara</button>
+    <button type="button" class="btn btn-secondary" onclick="detenerScanner()">Detener cámara</button>
+    <video id="scanner-video" playsinline muted style="width:100%;max-height:260px;border-radius:16px;margin-top:12px;background:#111"></video>
+    <label>Código manual</label>
+    <div class="inline-form"><input id="codigo-manual" type="text" placeholder="Escanea o escribe"><button type="button" class="btn" onclick="buscarPorCodigoManual()">Agregar</button></div>
+    <p id="scanner-status" class="muted"></p>
+  </section>
+</div>
+
+<section class="form-card">
+  <h2>Carrito de venta</h2>
+  <div id="carrito-vacio" class="muted">Aún no hay productos agregados.</div>
+  <table id="tabla-carrito" style="display:none"><thead><tr><th>Producto</th><th>Precio</th><th>Cantidad</th><th>Subtotal</th><th></th></tr></thead><tbody></tbody></table>
+  <h3>Total: $<span id="total-venta">0.00</span></h3>
+
+  <form method="post" id="form-venta-manual">
+    <input type="hidden" name="items_json" id="items_json" value="[]">
+    <label>Cliente / referencia</label><input type="text" name="cliente_nombre" value="Venta mostrador">
+    <label>Canal de venta</label>
+    <select name="canal_venta" id="canal_venta">
+      <option value="Mostrador">Mostrador</option>
+      <option value="Expo">Expo</option>
+      <option value="Domicilio manual">Domicilio manual</option>
+    </select>
+    <label>Expo relacionada</label>
+    <select name="id_expo"><option value="">Sin expo</option>{% for e in expos %}<option value="{{ e.id_expo }}">{{ e.nombre }} - {{ e.ubicacion }}</option>{% endfor %}</select>
+    <label>Método de pago</label>
+    <select name="metodo_pago"><option>Efectivo</option><option>Pago en línea</option><option>Transferencia</option><option>Tarjeta</option></select>
+    <button type="submit" class="btn">Confirmar venta e imprimir ticket</button>
+  </form>
+</section>
+
+<script>
+let carrito = {};
+let streamScanner = null;
+let scannerActivo = false;
+let ultimoCodigo = '';
+let ultimoScanTs = 0;
+
+function dinero(n){ return (Number(n||0)).toFixed(2); }
+function setStatus(msg){ document.getElementById('scanner-status').textContent = msg || ''; }
+
+function agregarProducto(p, cantidad=1){
+  const id = String(p.id_juguete);
+  if(!carrito[id]) carrito[id] = {...p, cantidad:0};
+  carrito[id].cantidad += cantidad;
+  renderCarrito();
+}
+function cambiarCantidad(id, valor){
+  const cantidad = Math.max(1, parseInt(valor || '1'));
+  carrito[id].cantidad = cantidad;
+  renderCarrito();
+}
+function quitarProducto(id){ delete carrito[id]; renderCarrito(); }
+function renderCarrito(){
+  const tbody = document.querySelector('#tabla-carrito tbody');
+  tbody.innerHTML = '';
+  let total = 0;
+  const items = Object.values(carrito);
+  document.getElementById('tabla-carrito').style.display = items.length ? 'table' : 'none';
+  document.getElementById('carrito-vacio').style.display = items.length ? 'none' : 'block';
+  items.forEach(p => {
+    const sub = Number(p.precio) * Number(p.cantidad);
+    total += sub;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${p.nombre}<br><small>${p.codigo_barras || p.sku || ''}</small></td><td>$${dinero(p.precio)}</td><td><input type="number" min="1" max="${p.stock}" value="${p.cantidad}" onchange="cambiarCantidad('${p.id_juguete}', this.value)"></td><td>$${dinero(sub)}</td><td><button type="button" class="btn btn-danger" onclick="quitarProducto('${p.id_juguete}')">Quitar</button></td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('total-venta').textContent = dinero(total);
+  document.getElementById('items_json').value = JSON.stringify(items.map(p => ({id_juguete:p.id_juguete, cantidad:p.cantidad})));
+}
+async function buscarProductos(){
+  const q = document.getElementById('busqueda-producto').value.trim();
+  const res = await fetch('/api/productos/buscar?q=' + encodeURIComponent(q));
+  const data = await res.json();
+  const cont = document.getElementById('resultados-productos');
+  cont.innerHTML = '';
+  (data.productos || []).forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'result-item';
+    div.innerHTML = `<strong>${p.nombre}</strong><br><span>$${dinero(p.precio)} | stock: ${p.stock} | ${p.categoria}</span> <button type="button" class="btn" style="float:right" onclick='agregarProducto(${JSON.stringify(p)})'>Agregar</button>`;
+    cont.appendChild(div);
+  });
+  if(!(data.productos || []).length) cont.innerHTML = '<p class="muted">Sin resultados.</p>';
+}
+async function buscarCodigo(codigo){
+  const now = Date.now();
+  if(codigo === ultimoCodigo && now - ultimoScanTs < 900) return;
+  ultimoCodigo = codigo; ultimoScanTs = now;
+  try{
+    const res = await fetch('/api/productos/codigo/' + encodeURIComponent(codigo));
+    if(!res.ok) throw new Error('No encontrado');
+    const p = await res.json();
+    agregarProducto(p, 1);
+    setStatus('Producto agregado: ' + p.nombre);
+  }catch(e){ setStatus('No encontré producto con código: ' + codigo); }
+}
+function buscarPorCodigoManual(){ const c = document.getElementById('codigo-manual').value.trim(); if(c) buscarCodigo(c); }
+async function iniciarScanner(){
+  if(!('BarcodeDetector' in window)){ setStatus('Este navegador no soporta BarcodeDetector. Usa Chrome/Edge en Android o captura el código manualmente.'); return; }
+  try{
+    const video = document.getElementById('scanner-video');
+    streamScanner = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    video.srcObject = streamScanner;
+    await video.play();
+    scannerActivo = true;
+    const detector = new BarcodeDetector({formats:['ean_13','ean_8','code_128','code_39','upc_a','upc_e','qr_code']});
+    const loop = async () => {
+      if(!scannerActivo) return;
+      try{
+        const codes = await detector.detect(video);
+        if(codes.length) await buscarCodigo(codes[0].rawValue);
+      }catch(e){}
+      requestAnimationFrame(loop);
+    };
+    loop();
+  }catch(e){ setStatus('No pude abrir la cámara. Revisa permisos y usa HTTPS.'); }
+}
+function detenerScanner(){
+  scannerActivo = false;
+  if(streamScanner){ streamScanner.getTracks().forEach(t => t.stop()); streamScanner = null; }
+}
+document.getElementById('form-venta-manual').addEventListener('submit', function(e){
+  if(!Object.keys(carrito).length){ e.preventDefault(); alert('Agrega al menos un producto.'); }
+});
+buscarProductos();
+</script>
+{% endblock %}

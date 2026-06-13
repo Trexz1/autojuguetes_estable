@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}{{ accion }} cliente{% endblock %}
+
+{% block content %}
+<h1>{{ accion }} cliente</h1>
+
+<form method="post">
+    <label>Nombre</label>
+    <input type="text" name="nombre" required value="{{ cliente.nombre if cliente else '' }}">
+
+    <label>Teléfono</label>
+    <input type="text" name="telefono" required value="{{ cliente.telefono if cliente else '' }}">
+
+    <label>Ciudad</label>
+    <input type="text" name="ciudad" required value="{{ cliente.ciudad if cliente else '' }}">
+
+    <button type="submit" class="btn">{{ accion }}</button>
+    <a href="/panel/clientes" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

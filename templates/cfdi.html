@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}CFDI{% endblock %}
+{% block content %}
+<h1>Solicitudes CFDI</h1>
+<p class="muted">Módulo administrativo para capturar solicitudes de factura. No timbra ante SAT por sí solo; para timbrado real se necesita integrar un PAC.</p>
+{% if error %}<div class="alert-error">{{ error }}</div>{% endif %}
+<section class="form-card">
+  <h2>Nueva solicitud CFDI</h2>
+  <form method="post" action="/panel/cfdi/nuevo">
+    <label>Pedido / venta</label><select name="id_pedido" required>{% for v in ventas %}<option value="{{ v.id_pedido }}">#{{ v.id_pedido }} - {{ v.cliente }} - ${{ "%.2f"|format(v.total or 0) }}</option>{% endfor %}</select>
+    <label>RFC</label><input name="rfc" maxlength="13" required>
+    <label>Razón social</label><input name="razon_social" required>
+    <label>Régimen fiscal</label><input name="regimen_fiscal" placeholder="Ej. 612">
+    <label>Uso CFDI</label><input name="uso_cfdi" placeholder="Ej. G03">
+    <label>Código postal fiscal</label><input name="codigo_postal">
+    <label>Correo</label><input name="correo" type="email">
+    <label>Notas</label><textarea name="notas"></textarea>
+    <button class="btn" type="submit">Guardar solicitud</button>
+  </form>
+</section>
+<table><thead><tr><th>ID</th><th>Pedido</th><th>RFC</th><th>Razón social</th><th>Estado</th><th>UUID</th><th>Fecha</th></tr></thead><tbody>{% for f in facturas %}<tr><td>#{{ f.id_factura }}</td><td>#{{ f.id_pedido }}</td><td>{{ f.rfc }}</td><td>{{ f.razon_social }}</td><td>{{ f.estado }}</td><td>{{ f.uuid or '-' }}</td><td>{{ f.fecha_solicitud }}</td></tr>{% endfor %}</tbody></table>
+{% endblock %}

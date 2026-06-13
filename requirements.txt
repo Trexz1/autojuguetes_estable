@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+pyodbc
+requests
+python-dotenv
+jinja2
+rapidfuzz
+openai
+python-multipart
+itsdangerous
+mercadopago

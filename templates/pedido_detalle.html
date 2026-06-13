@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Detalle del pedido | Panel{% endblock %}
+
+{% block content %}
+<div class="acciones">
+    <a href="/panel/pedidos" class="btn btn-volver">Volver a pedidos</a>
+    {% if request.session.get('rol_panel') == 'admin' %}
+        <a href="/panel/pedidos/editar/{{ pedido.id_pedido }}" class="btn btn-editar">Editar pedido</a>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h1>Detalle del pedido #{{ pedido.id_pedido }}</h1>
+
+    <p><strong>Cliente:</strong> {{ pedido.cliente }}</p>
+    <p><strong>Teléfono:</strong> {{ pedido.telefono }}</p>
+    <p><strong>Fecha:</strong> {{ pedido.fecha_pedido }}</p>
+    <p><strong>Estado:</strong> {{ pedido.estado }}</p>
+    <p><strong>Método de entrega:</strong> {{ pedido.metodo_entrega or 'No definido' }}</p>
+    <p><strong>Dirección:</strong> {{ pedido.direccion_entrega or '-' }}</p>
+    <p><strong>Referencia:</strong> {{ pedido.referencia_entrega or '-' }}</p>
+    <p><strong>Subtotal productos:</strong> ${{ "%.2f"|format(pedido.subtotal or 0) }}</p>
+    <p><strong>Envío:</strong> ${{ "%.2f"|format(pedido.costo_envio or 0) }}</p>
+    <p><strong>Total:</strong> ${{ "%.2f"|format(pedido.total or 0) }}</p>
+    <p><strong>Método de pago:</strong> {{ pedido.metodo_pago or '-' }}</p>
+    <p><strong>Observaciones:</strong> {{ pedido.observaciones or '-' }}</p>
+    <p><strong>Stock descontado:</strong> {{ 'Sí' if pedido.stock_descontado else 'No' }}</p>
+    <p><strong>Fecha entregado:</strong> {{ pedido.fecha_entregado or '-' }}</p>
+    <p><strong>Estado de pago:</strong> {{ pedido.estado_pago or '-' }}</p>
+    {% if pedido.mercadopago_init_point %}<p><strong>Link Mercado Pago:</strong> <a href="{{ pedido.mercadopago_init_point }}" target="_blank">Abrir link de pago</a></p>{% endif %}
+    <div class="acciones">
+        {% if pedido.estado == 'Entregado' %}<a href="/panel/pedidos/ticket/{{ pedido.id_pedido }}" class="btn btn-entregar">Imprimir ticket</a>{% endif %}
+        {% if pedido.estado not in ['Entregado','Cancelado'] %}<a href="/panel/pedidos/mercadopago/{{ pedido.id_pedido }}" class="btn btn-editar">Generar link Mercado Pago</a>{% endif %}
+    </div>
+</div>
+
+<h2>Productos del pedido</h2>
+{% if detalles and detalles|length > 0 %}
+<table>
+    <thead>
+        <tr>
+            <th>ID juguete</th>
+            <th>Juguete</th>
+            <th>Cantidad</th>
+            <th>Precio venta</th>
+            <th>Costo</th>
+            <th>Subtotal</th>
+            <th>Ganancia</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for d in detalles %}
+        <tr>
+            <td>{{ d.id_juguete }}</td>
+            <td>{{ d.juguete }}</td>
+            <td>{{ d.cantidad }}</td>
+            <td>${{ "%.2f"|format(d.precio_unitario or 0) }}</td>
+            <td>${{ "%.2f"|format(d.costo_unitario or 0) }}</td>
+            <td>${{ "%.2f"|format(d.subtotal or 0) }}</td>
+            <td>${{ "%.2f"|format(d.ganancia or 0) }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+    <p>Este pedido no tiene detalles registrados.</p>
+{% endif %}
+{% endblock %}

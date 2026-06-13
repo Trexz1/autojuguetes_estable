@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Historial cliente{% endblock %}
+
+{% block content %}
+<h1>Historial de consultas</h1>
+
+{% if cliente %}
+<p><strong>Cliente:</strong> {{ cliente.nombre }}</p>
+<p><strong>Teléfono:</strong> {{ cliente.telefono }}</p>
+<p><strong>Ciudad:</strong> {{ cliente.ciudad }}</p>
+{% endif %}
+
+<a href="/panel/clientes" class="btn btn-secondary">Volver a clientes</a>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Mensaje</th>
+            <th>Intención</th>
+            <th>Fecha</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for q in consultas %}
+        <tr>
+            <td>{{ q.id_consulta }}</td>
+            <td>{{ q.mensaje }}</td>
+            <td>{{ q.intencion }}</td>
+            <td>{{ q.fecha }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Diagnóstico | Panel{% endblock %}
+
+{% block content %}
+<h1>Diagnóstico del sistema</h1>
+<p>Verificación rápida antes de vender, desplegar o probar el bot.</p>
+
+<div class="diagnostico-grid">
+    <div class="card diagnostico-card">
+        <h3>Variables de entorno</h3>
+        <p class="estado {{ 'ok' if env.ok else 'error' }}">{{ 'Correcto' if env.ok else 'Incompleto' }}</p>
+        {% if env.faltantes %}<p>Faltantes: {{ env.faltantes|join(', ') }}</p>{% endif %}
+        {% if env.advertencias %}<ul>{% for a in env.advertencias %}<li>{{ a }}</li>{% endfor %}</ul>{% endif %}
+    </div>
+    <div class="card diagnostico-card">
+        <h3>SQL Server</h3>
+        <p class="estado {{ 'ok' if sql.ok else 'error' }}">{{ 'Correcto' if sql.ok else 'Error' }}</p>
+        <p>{{ sql.detalle }}</p>
+    </div>
+    <div class="card diagnostico-card">
+        <h3>Meta WhatsApp</h3>
+        <p class="estado {{ 'ok' if meta.ok else 'error' }}">{{ 'Correcto' if meta.ok else 'Error' }}</p>
+        <p>{{ meta.detalle }}</p>
+    </div>
+    <div class="card diagnostico-card">
+        <h3>OpenAI</h3>
+        <p class="estado {{ 'ok' if openai.ok else 'error' }}">{{ 'Correcto' if openai.ok else 'Error' }}</p>
+        <p>{{ openai.detalle }}</p>
+    </div>
+</div>
+
+<a href="/panel" class="btn btn-panel">Volver al panel</a>
+{% endblock %}

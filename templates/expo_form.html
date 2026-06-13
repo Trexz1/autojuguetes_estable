@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}{{ accion }} expo{% endblock %}
+
+{% block content %}
+<h1>{{ accion }} expo</h1>
+
+<form method="post">
+    <label>Nombre</label>
+    <input type="text" name="nombre" required value="{{ expo.nombre if expo else '' }}">
+
+    <label>Ubicación</label>
+    <input type="text" name="ubicacion" required value="{{ expo.ubicacion if expo else '' }}">
+
+    <label>Fecha inicio</label>
+    <input type="date" name="fecha_inicio" required value="{{ expo.fecha_inicio if expo else '' }}">
+
+    <label>Fecha fin</label>
+    <input type="date" name="fecha_fin" required value="{{ expo.fecha_fin if expo else '' }}">
+
+    <button type="submit" class="btn">{{ accion }}</button>
+    <a href="/panel/expos" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

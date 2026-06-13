@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Juguetes{% endblock %}
+{% block content %}
+<section class="page-hero color-pop">
+  <div>
+    <h1>Juguetes</h1>
+    <p class="muted">Catálogo operativo con proveedor, margen, código de barras y foto para WhatsApp.</p>
+  </div>
+  <a href="/panel/juguetes/nuevo" class="btn btn-guardar">Nuevo juguete</a>
+</section>
+<table>
+<thead><tr><th>Foto</th><th>ID</th><th>Nombre</th><th>Compra</th><th>Venta</th><th>Margen</th><th>Stock</th><th>Proveedor</th><th>SKU</th><th>Código barras</th><th>Categoría</th><th>Acciones</th></tr></thead>
+<tbody>
+{% for j in juguetes %}
+<tr>
+  <td>
+    {% set foto = j.foto_url or j.foto_local %}
+    {% if foto %}
+      <img class="product-thumb" src="{{ foto_src(foto) }}" alt="{{ j.nombre }}" loading="lazy">
+    {% else %}
+      <span class="muted">Sin foto</span>
+    {% endif %}
+  </td>
+  <td>{{ j.id_juguete }}</td>
+  <td><strong>{{ j.nombre }}</strong><br><small>{{ j.descripcion }}</small></td>
+  <td>${{ "%.2f"|format(j.precio_compra or 0) }}</td>
+  <td>${{ "%.2f"|format(j.precio or 0) }}</td>
+  <td>${{ "%.2f"|format((j.precio or 0)-(j.precio_compra or 0)) }}</td>
+  <td>{{ j.stock }}</td>
+  <td>{{ j.proveedor or '-' }}</td>
+  <td>{{ j.sku }}</td>
+  <td>{{ j.codigo_barras or '-' }}</td>
+  <td>{{ j.categoria }}</td>
+  <td><a href="/panel/juguetes/editar/{{ j.id_juguete }}" class="btn btn-secondary">Editar</a> <a href="/panel/juguetes/eliminar/{{ j.id_juguete }}" class="btn btn-danger" onclick="return confirm('¿Seguro que deseas eliminar este juguete?');">Eliminar</a></td>
+</tr>
+{% endfor %}
+</tbody></table>
+{% endblock %}

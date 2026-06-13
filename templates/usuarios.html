@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Usuarios y roles{% endblock %}
+{% block content %}
+<h1>Usuarios y roles</h1>
+<p class="muted">Control comercial de accesos: administrador, vendedor, caja, pedidos y lectura.</p>
+{% if error %}<div class="alert-error">{{ error }}</div>{% endif %}
+<section class="form-card">
+  <h2>Nuevo usuario</h2>
+  <form method="post" action="/panel/usuarios/nuevo">
+    <label>Usuario</label><input name="usuario" required>
+    <label>Nombre</label><input name="nombre">
+    <label>Contraseña</label><input name="password" type="password" required>
+    <label>Rol</label><select name="rol">{% for k,v in roles.items() %}<option value="{{ k }}">{{ k }} - {{ v }}</option>{% endfor %}</select>
+    <button class="btn" type="submit">Crear usuario</button>
+  </form>
+</section>
+<table><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Activo</th><th>Último acceso</th><th>Acciones</th></tr></thead><tbody>
+{% for u in usuarios %}<tr><td>{{ u.usuario }}</td><td>{{ u.nombre }}</td><td>{{ u.rol }}</td><td>{{ 'Sí' if u.activo else 'No' }}</td><td>{{ u.ultimo_acceso or '-' }}</td><td>{% if u.activo %}<a class="btn btn-danger" href="/panel/usuarios/desactivar/{{ u.id_usuario }}">Desactivar</a>{% else %}<a class="btn" href="/panel/usuarios/activar/{{ u.id_usuario }}">Activar</a>{% endif %}</td></tr>{% endfor %}
+</tbody></table>
+{% endblock %}

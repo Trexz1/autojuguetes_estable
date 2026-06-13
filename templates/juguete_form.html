@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}{{ accion }} juguete{% endblock %}
+{% block content %}
+<section class="page-hero color-pop">
+  <div>
+    <h1>{{ accion }} juguete</h1>
+    <p class="muted">Alta comercial con proveedor, código de barras y foto para catálogo/WhatsApp.</p>
+  </div>
+  <a href="/panel/proveedores/nuevo" class="btn btn-secondary">Nuevo proveedor</a>
+</section>
+
+{% if error %}<div class="alert-error">{{ error }}</div>{% endif %}
+
+<form method="post" class="form-card product-form-card" enctype="multipart/form-data">
+    <div class="grid-two">
+      <div>
+        <label>Nombre</label><input type="text" name="nombre" required value="{{ juguete.nombre if juguete else '' }}">
+        <label>Descripción</label><input type="text" name="descripcion" required value="{{ juguete.descripcion if juguete else '' }}">
+        <label>Proveedor</label>
+        <select name="id_proveedor">
+          <option value="">Sin proveedor asignado</option>
+          {% for p in proveedores %}
+            <option value="{{ p.id_proveedor }}" {% if juguete and juguete.id_proveedor == p.id_proveedor %}selected{% endif %}>{{ p.nombre }}{% if p.empresa %} — {{ p.empresa }}{% endif %}</option>
+          {% endfor %}
+        </select>
+        <label>Categoría</label>
+        <select name="id_categoria" required>
+          <option value="">Selecciona una categoría</option>
+          {% for c in categorias %}<option value="{{ c.id_categoria }}" {% if juguete and juguete.id_categoria == c.id_categoria %}selected{% endif %}>{{ c.nombre }}</option>{% endfor %}
+        </select>
+        <label>Marca</label><input type="text" name="marca" required value="{{ juguete.marca if juguete else '' }}">
+        <label>SKU</label><input type="text" name="sku" required value="{{ juguete.sku if juguete else '' }}">
+      </div>
+
+      <div>
+        <label>Precio de compra</label><input type="number" step="0.01" min="0" name="precio_compra" required value="{{ juguete.precio_compra if juguete else 0 }}">
+        <label>Precio de venta</label><input type="number" step="0.01" min="0" name="precio" required value="{{ juguete.precio if juguete else '' }}">
+        <small class="muted">El precio de compra no puede ser mayor que el precio de venta.</small>
+        <label>Stock</label><input type="number" min="0" name="stock" required value="{{ juguete.stock if juguete else '' }}">
+        <label>Edad mínima</label><input type="number" name="edad_minima" required value="{{ juguete.edad_minima if juguete else 0 }}">
+        <label>Edad máxima</label><input type="number" name="edad_maxima" required value="{{ juguete.edad_maxima if juguete else 99 }}">
+      </div>
+    </div>
+
+    <div class="scanner-field-card">
+      <div>
+        <label>Código de barras</label>
+        <input type="text" id="codigo-barras-input" name="codigo_barras" value="{{ juguete.codigo_barras if juguete else '' }}" placeholder="Escanea con cámara o captura manualmente">
+        <small class="muted">No se permite repetir el mismo código en dos productos.</small>
+      </div>
+      <div class="scanner-actions">
+        <button type="button" class="btn btn-scan" id="btn-scan-product-form">Abrir cámara</button>
+        <button type="button" class="btn btn-secondary" id="btn-stop-scan-product-form">Cerrar cámara</button>
+      </div>
+      <video id="product-form-scanner-video" class="scanner-video" playsinline muted></video>
+      <div id="product-form-scanner-status" class="muted"></div>
+    </div>
+
+    <div class="photo-uploader-card">
+      <div>
+        <label>Foto del producto</label>
+        <input type="file" name="foto_producto" id="foto-producto-input" accept="image/png,image/jpeg,image/webp">
+        <small class="muted">Se guarda en <code>static/productos</code>. Máximo recomendado: 5 MB.</small>
+      </div>
+      <div>
+        <label>URL externa de foto</label>
+        <input type="url" name="foto_url" placeholder="https://..." value="{{ juguete.foto_url if juguete and juguete.foto_url else '' }}">
+        <small class="muted">Úsalo si la imagen ya está hospedada en internet.</small>
+      </div>
+      <div class="product-photo-preview">
+        {% if juguete and (juguete.foto_local or juguete.foto_url) %}
+          {% set foto_actual = juguete.foto_url or juguete.foto_local %}
+          <img src="{{ foto_src(foto_actual) }}" alt="Foto actual del producto">
+        {% else %}
+          <span>Vista previa</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-guardar">{{ accion }}</button>
+      <a href="/panel/juguetes" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
+
+<script>
+(function(){
+  const form = document.querySelector('form');
+  form.addEventListener('submit', function(e){
+    const c = parseFloat(this.precio_compra.value || 0), v = parseFloat(this.precio.value || 0);
+    if(c > v){ e.preventDefault(); alert('El precio de compra no puede ser mayor que el precio de venta.'); }
+  });
+
+  const input = document.getElementById('codigo-barras-input');
+  const btn = document.getElementById('btn-scan-product-form');
+  const stopBtn = document.getElementById('btn-stop-scan-product-form');
+  const video = document.getElementById('product-form-scanner-video');
+  const status = document.getElementById('product-form-scanner-status');
+  let stream = null, detector = null, scanning = false;
+
+  function setStatus(txt){ status.textContent = txt || ''; }
+  async function startScanner(){
+    if (!('BarcodeDetector' in window)) {
+      setStatus('Este navegador no soporta BarcodeDetector. Captura el código manualmente o usa Chrome/Edge en Android.');
+      return;
+    }
+    detector = new BarcodeDetector({formats: ['ean_13','ean_8','code_128','code_39','upc_a','upc_e','qr_code']});
+    stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}});
+    video.srcObject = stream;
+    video.style.display = 'block';
+    await video.play();
+    scanning = true;
+    setStatus('Escaneando código...');
+    scanLoop();
+  }
+  async function scanLoop(){
+    if (!scanning || !detector) return;
+    try {
+      const codes = await detector.detect(video);
+      if (codes && codes.length) {
+        input.value = codes[0].rawValue || '';
+        setStatus('Código detectado: ' + input.value);
+        stopScanner();
+        input.focus();
+        return;
+      }
+    } catch(e) {}
+    requestAnimationFrame(scanLoop);
+  }
+  function stopScanner(){
+    scanning = false;
+    if(stream){ stream.getTracks().forEach(t => t.stop()); stream = null; }
+    video.pause(); video.srcObject = null; video.style.display = 'none';
+  }
+  btn.addEventListener('click', function(){ startScanner().catch(err => setStatus('No se pudo abrir la cámara: ' + err.message)); });
+  stopBtn.addEventListener('click', stopScanner);
+
+  const file = document.getElementById('foto-producto-input');
+  const preview = document.querySelector('.product-photo-preview');
+  file.addEventListener('change', function(){
+    const f = this.files && this.files[0];
+    if(!f) return;
+    const url = URL.createObjectURL(f);
+    preview.innerHTML = '<img src="' + url + '" alt="Vista previa">';
+  });
+})();
+</script>
+{% endblock %}

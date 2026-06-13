@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Consultas{% endblock %}
+
+{% block content %}
+<h1>Consultas de clientes</h1>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Mensaje</th>
+            <th>Respuesta</th>
+            <th>Fecha</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in consultas %}
+        <tr>
+            <td>{{ c.id_consulta }}</td>
+            <td>{{ c.mensaje }}</td>
+            <td>{{ c.respuesta_generada }}</td>
+            <td>{{ c.fecha }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

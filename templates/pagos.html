@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% block title %}Pagos | Panel{% endblock %}{% block content %}
+<h1>Verificación de pagos</h1><p class="muted">Aquí se revisan links generados, pagos pendientes y pagos confirmados por Mercado Pago.</p>
+<table><thead><tr><th>Pedido</th><th>Cliente</th><th>Total</th><th>Método</th><th>Estado pago</th><th>Preference</th><th>Actualizado</th><th>Acciones</th></tr></thead><tbody>{% for p in pagos %}<tr><td>#{{ p.id_pedido }}</td><td>{{ p.cliente }}</td><td>${{ "%.2f"|format(p.total or 0) }}</td><td>{{ p.metodo_pago or '-' }}</td><td>{{ p.estado_pago or '-' }}</td><td>{{ p.preference_id or '-' }}</td><td>{{ p.fecha_actualizacion or p.fecha_creacion or '-' }}</td><td>{% if p.mercadopago_init_point %}<a class="btn btn-ver" target="_blank" href="{{ p.mercadopago_init_point }}">Abrir link</a>{% endif %}<a class="btn btn-secondary" href="/panel/pedidos/{{ p.id_pedido }}">Pedido</a></td></tr>{% endfor %}</tbody></table>
+{% endblock %}

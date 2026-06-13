@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Clientes{% endblock %}
+
+{% block content %}
+<h1>Clientes</h1>
+
+<a href="/panel/clientes/nuevo" class="btn">Nuevo cliente</a>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Teléfono</th>
+            <th>Ciudad</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in clientes %}
+        <tr>
+            <td>{{ c.id_cliente }}</td>
+            <td>{{ c.nombre }}</td>
+            <td>{{ c.telefono }}</td>
+            <td>{{ c.ciudad }}</td>
+            <td>
+                <a href="/panel/clientes/{{ c.id_cliente }}/consultas" class="btn">Historial</a>
+                <a href="/panel/clientes/editar/{{ c.id_cliente }}" class="btn btn-secondary">Editar</a>
+                <a href="/panel/clientes/eliminar/{{ c.id_cliente }}" class="btn btn-danger"
+                   onclick="return confirm('¿Seguro que deseas eliminar este cliente y sus consultas?');">
+                   Eliminar
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

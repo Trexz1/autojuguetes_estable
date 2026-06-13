@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Proveedores | Panel{% endblock %}
+{% block content %}
+<h1>Proveedores</h1>
+<div class="acciones-superiores">
+  <a href="/panel" class="btn btn-panel">Volver al panel</a>
+  <a href="/panel/proveedores/nuevo" class="btn">Nuevo proveedor</a>
+</div>
+<table>
+  <thead><tr><th>ID</th><th>Nombre</th><th>Empresa</th><th>Teléfono</th><th>Correo</th><th>Estado</th><th>Registro</th><th>Acciones</th></tr></thead>
+  <tbody>
+  {% for p in proveedores %}
+    <tr>
+      <td>{{ p.id_proveedor }}</td><td>{{ p.nombre }}</td><td>{{ p.empresa or '-' }}</td><td>{{ p.telefono or '-' }}</td><td>{{ p.correo or '-' }}</td>
+      <td>{{ 'Activo' if p.activo else 'Inactivo' }}</td><td>{{ p.fecha_registro }}</td>
+      <td><a class="btn btn-editar" href="/panel/proveedores/editar/{{ p.id_proveedor }}">Editar</a> <a class="btn btn-eliminar" href="/panel/proveedores/eliminar/{{ p.id_proveedor }}" onclick="return confirm('¿Desactivar proveedor?');">Desactivar</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

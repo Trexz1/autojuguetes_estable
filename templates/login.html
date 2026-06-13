@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Acceso al panel | Robles Outlet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/panel.css">
+</head>
+<body>
+    <div class="login-page">
+        <div class="login-card">
+            <img src="/static/logo_robles.png" alt="Robles Outlet" class="login-logo">
+            <h1>Acceso al panel</h1>
+            <p>Ingresa con el usuario autorizado para administrar el sistema.</p>
+
+            {% if error %}
+                <div class="alert-error">{{ error }}</div>
+            {% endif %}
+
+            <form method="post" action="/panel/login">
+                <label>Usuario</label>
+                <input type="text" name="usuario" required autocomplete="username">
+
+                <label>Contraseña</label>
+                <input type="password" name="password" required autocomplete="current-password">
+
+                <button type="submit" class="btn">Entrar</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

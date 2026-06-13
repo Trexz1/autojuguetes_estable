@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{{ accion }} proveedor | Panel{% endblock %}
+{% block content %}
+<h1>{{ accion }} proveedor</h1>
+{% if error %}<div class="alerta alerta-error">{{ error }}</div>{% endif %}
+<form method="post" class="form-card">
+  <label>Nombre *</label><input name="nombre" required value="{{ proveedor.nombre if proveedor else '' }}">
+  <label>Empresa</label><input name="empresa" value="{{ proveedor.empresa if proveedor else '' }}">
+  <label>Teléfono mexicano</label><input name="telefono" pattern="(\+52)?[0-9]{10}" placeholder="+523411081543 o 3411081543" value="{{ proveedor.telefono if proveedor else '' }}">
+  <label>Correo</label><input type="email" name="correo" value="{{ proveedor.correo if proveedor else '' }}">
+  <label>Notas</label><textarea name="notas">{{ proveedor.notas if proveedor else '' }}</textarea>
+  {% if proveedor %}<label class="check-row"><input type="checkbox" name="activo" {% if proveedor.activo %}checked{% endif %}> Activo</label>{% endif %}
+  <div class="acciones"><button class="btn" type="submit">Guardar</button><a class="btn btn-secondary" href="/panel/proveedores">Cancelar</a></div>
+</form>
+{% endblock %}

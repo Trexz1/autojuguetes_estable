@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Expos{% endblock %}
+
+{% block content %}
+<h1>Expos</h1>
+
+<a href="/panel/expos/nuevo" class="btn">Nueva expo</a>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Ubicación</th>
+            <th>Fecha inicio</th>
+            <th>Fecha fin</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for e in expos %}
+        <tr>
+            <td>{{ e.id_expo }}</td>
+            <td>{{ e.nombre }}</td>
+            <td>{{ e.ubicacion }}</td>
+            <td>{{ e.fecha_inicio }}</td>
+            <td>{{ e.fecha_fin }}</td>
+            <td>
+                <a href="/panel/expos/editar/{{ e.id_expo }}" class="btn btn-secondary">Editar</a>
+                <a href="/panel/expos/eliminar/{{ e.id_expo }}" class="btn btn-danger" onclick="return confirm('¿Seguro que deseas eliminar esta expo?');">Eliminar</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

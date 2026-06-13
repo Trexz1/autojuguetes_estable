@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Entradas de inventario | Panel{% endblock %}
+{% block content %}
+<h1>Entradas de inventario</h1>
+<div class="acciones-superiores">
+  <a href="/panel" class="btn btn-panel">Volver al panel</a>
+  <a href="/panel/entradas/nueva" class="btn">Nueva entrada multiproducto</a>
+</div>
+<table>
+<thead><tr><th>ID</th><th>Fecha</th><th>Proveedor</th><th>Productos</th><th>Piezas</th><th>Total costo</th><th>Observaciones</th><th>Acciones</th></tr></thead>
+<tbody>
+{% for e in entradas %}
+<tr><td>{{ e.id_entrada }}</td><td>{{ e.fecha_entrada }}</td><td>{{ e.proveedor or '-' }}</td><td>{{ e.productos }}</td><td>{{ e.piezas }}</td><td>${{ "%.2f"|format(e.total_costo or 0) }}</td><td>{{ e.observaciones or '-' }}</td><td><a class="btn btn-ver" href="/panel/entradas/{{ e.id_entrada }}">Ver</a></td></tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Pedidos | Panel{% endblock %}
+
+{% block content %}
+<h1>Pedidos</h1>
+
+<div class="acciones-superiores">
+    <a href="/panel" class="btn btn-panel">Volver al panel</a>
+</div>
+
+<div class="filtros-pedidos">
+    <a class="btn {{ 'btn-activo' if not estado_actual else '' }}" href="/panel/pedidos">Todos</a>
+    {% for estado in estados %}
+        <a class="btn {{ 'btn-activo' if estado_actual == estado else '' }}" href="/panel/pedidos?estado={{ estado }}">{{ estado }}</a>
+    {% endfor %}
+</div>
+
+{% if pedidos and pedidos|length > 0 %}
+<table>
+    <thead>
+        <tr>
+            <th>ID</th><th>Cliente</th><th>Teléfono</th><th>Fecha</th><th>Estado</th><th>Método</th><th>Total</th><th>Pago</th><th>Dirección</th><th>Referencia</th><th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pedido in pedidos %}
+        <tr>
+            <td>{{ pedido.id_pedido }}</td>
+            <td>{{ pedido.cliente }}</td>
+            <td>{{ pedido.telefono }}</td>
+            <td>{{ pedido.fecha_pedido }}</td>
+            <td class="estado estado-{{ (pedido.estado or 'pendiente')|lower|replace(' ', '-') }}">{{ pedido.estado }}</td>
+            <td>{{ pedido.metodo_entrega or 'No definido' }}</td>
+            <td>${{ "%.2f"|format(pedido.total or 0) }}</td>
+            <td>{{ pedido.estado_pago or '-' }}</td>
+            <td>{{ pedido.direccion_entrega or '-' }}</td>
+            <td>{{ pedido.referencia_entrega or '-' }}</td>
+            <td class="acciones">
+                <a href="/panel/pedidos/{{ pedido.id_pedido }}" class="btn btn-ver">Ver</a>
+                {% if pedido.estado == 'Entregado' %}<a href="/panel/pedidos/ticket/{{ pedido.id_pedido }}" class="btn btn-ver">Ticket</a>{% endif %}
+                {% if request.session.get('rol_panel') in ['admin', 'pedidos'] and pedido.estado not in ['Entregado', 'Cancelado'] %}<a href="/panel/pedidos/mercadopago/{{ pedido.id_pedido }}" class="btn btn-editar">Pago MP</a>{% endif %}
+                {% if request.session.get('rol_panel') in ['admin', 'pedidos'] %}
+                    {% if pedido.estado not in ['Entregado', 'Cancelado'] %}
+                        <a href="/panel/pedidos/estado/{{ pedido.id_pedido }}/Confirmado" class="btn btn-editar">Confirmar</a>
+                        <a href="/panel/pedidos/estado/{{ pedido.id_pedido }}/En_preparación" class="btn btn-editar">Preparar</a>
+                        <a href="/panel/pedidos/entregar/{{ pedido.id_pedido }}" class="btn btn-entregar" onclick="return confirm('¿Marcar este pedido como entregado? El stock se descontará aquí.');">Entregar</a>
+                        <a href="/panel/pedidos/estado/{{ pedido.id_pedido }}/Cancelado" class="btn btn-eliminar" onclick="return confirm('¿Cancelar este pedido?');">Cancelar</a>
+                    {% endif %}
+                {% endif %}
+                {% if request.session.get('rol_panel') == 'admin' %}
+                    <a href="/panel/pedidos/editar/{{ pedido.id_pedido }}" class="btn btn-editar">Editar</a>
+                    <a href="/panel/pedidos/eliminar/{{ pedido.id_pedido }}" class="btn btn-eliminar" onclick="return confirm('¿Eliminar este pedido?');">Eliminar</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+    <p>No hay pedidos registrados con este filtro.</p>
+{% endif %}
+{% endblock %}

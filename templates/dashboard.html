@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-hero" data-gsap-scroll-section>
+    <img src="/static/logo_robles.png" alt="Robles Outlet" class="dashboard-logo">
+    <div>
+        <h1>Panel de Administración</h1>
+        <p>Control operativo de catálogo, expos, clientes, consultas y pedidos de Robles Outlet.</p>
+    </div>
+</div>
+
+{% if metricas and not metricas.error %}
+<div class="metric-grid">
+    <div class="metric-card"><span>Pedidos de hoy</span><strong>{{ metricas.pedidos_hoy }}</strong></div>
+    <div class="metric-card"><span>Ventas entregadas hoy</span><strong>${{ "%.2f"|format(metricas.ventas_entregadas_hoy or 0) }}</strong></div>
+    <div class="metric-card"><span>Ganancia entregada hoy</span><strong>${{ "%.2f"|format(metricas.ganancia_entregada_hoy or 0) }}</strong></div>
+    <div class="metric-card"><span>Productos bajos en stock</span><strong>{{ metricas.productos_bajo_stock }}</strong></div>
+    <div class="metric-card"><span>Consultas 24h</span><strong>{{ metricas.consultas_24h }}</strong></div>
+    <div class="metric-card"><span>Clientes recientes</span><strong>{{ metricas.clientes_recientes }}</strong></div>
+    <div class="metric-card"><span>Expos próximas</span><strong>{{ metricas.expos_proximas }}</strong></div>
+</div>
+
+{% if metricas.productos_bajo_stock_lista %}
+<div class="stock-alert-panel">
+    <h2>Productos bajos en stock</h2>
+    <p>Umbral configurado: {{ metricas.productos_bajo_stock }} producto(s) en nivel crítico.</p>
+    <div class="stock-low-list">
+    {% for p in metricas.productos_bajo_stock_lista %}
+        <a href="/panel/juguetes/editar/{{ p.id_juguete }}" class="stock-low-item">
+            <strong>{{ p.nombre }}</strong>
+            <span>Stock: {{ p.stock }} | {{ p.categoria or 'Sin categoría' }}</span>
+        </a>
+    {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="chart-card">
+    <h2>Ventas entregadas últimos 14 días</h2>
+    <canvas id="dashboard-ventas-chart" height="120"></canvas>
+</div>
+<script id="dashboard-ventas-data" type="application/json">{{ metricas.ventas_grafica | tojson if metricas and not metricas.error else '[]' }}</script>
+
+{% elif metricas and metricas.error %}
+<div class="alerta alerta-error">No se pudieron cargar métricas: {{ metricas.error }}</div>
+{% endif %}
+
+<div id="dashboard-react-app"></div>
+<script id="dashboard-cards-data" type="application/json">
+[
+{% if request.session.get('rol_panel') == 'admin' %}
+  {"title":"Juguetes","description":"Alta, edición y eliminación de juguetes del catálogo.","href":"/panel/juguetes","cta":"Ir a juguetes","icon":"🧸"},
+  {"title":"Expos","description":"Administra eventos, fechas y ubicaciones próximas.","href":"/panel/expos","cta":"Ir a expos","icon":"🎪"},
+  {"title":"Clientes","description":"Consulta y edita clientes registrados por WhatsApp.","href":"/panel/clientes","cta":"Ir a clientes","icon":"👥"},
+  {"title":"Proveedores","description":"Alta y control de proveedores para entradas de inventario.","href":"/panel/proveedores","cta":"Ir a proveedores","icon":"🏭"},
+  {"title":"Entradas","description":"Registra entradas multiproducto y suma stock automáticamente.","href":"/panel/entradas","cta":"Ir a entradas","icon":"📥"},
+  {"title":"Ventas","description":"Consulta ventas entregadas, gráficas, ganancia y tickets imprimibles.","href":"/panel/ventas","cta":"Ir a ventas","icon":"📈"},
+  {"title":"Pagos","description":"Verifica links, pagos pendientes y pagos confirmados por Mercado Pago.","href":"/panel/pagos","cta":"Ir a pagos","icon":"💳"},
+  {"title":"Consultas","description":"Revisa el historial de mensajes recibidos.","href":"/panel/consultas","cta":"Ir a consultas","icon":"💬"},
+  {"title":"Diagnóstico","description":"Valida SQL Server, Meta, OpenAI y variables de entorno.","href":"/panel/diagnostico","cta":"Ver diagnóstico","icon":"🧪"},
+{% endif %}
+  {"title":"Pedidos","description":"Da seguimiento a pedidos confirmados, revisa detalles y actualiza su estado.","href":"/panel/pedidos","cta":"Ir a pedidos","icon":"📦"}
+]
+</script>
+
+<div id="dashboard-fallback-cards" class="cards">
+    {% if request.session.get('rol_panel') == 'admin' %}
+    <div class="card"><h3>Juguetes</h3><p>Alta, edición y eliminación de juguetes del catálogo.</p><a href="/panel/juguetes" class="btn">Ir a juguetes</a></div>
+    <div class="card"><h3>Expos</h3><p>Administra eventos, fechas y ubicaciones próximas.</p><a href="/panel/expos" class="btn">Ir a expos</a></div>
+    <div class="card"><h3>Clientes</h3><p>Consulta y edita clientes registrados por WhatsApp.</p><a href="/panel/clientes" class="btn">Ir a clientes</a></div>
+    <div class="card"><h3>Proveedores</h3><p>Alta y control de proveedores.</p><a href="/panel/proveedores" class="btn">Ir a proveedores</a></div>
+    <div class="card"><h3>Entradas</h3><p>Entradas multiproducto con suma de stock.</p><a href="/panel/entradas" class="btn">Ir a entradas</a></div>
+    <div class="card"><h3>Ventas</h3><p>Ventas entregadas, gráfica, ganancia y tickets.</p><a href="/panel/ventas" class="btn">Ir a ventas</a></div>
+    <div class="card"><h3>Pagos</h3><p>Verifica links de Mercado Pago y estados de pago.</p><a href="/panel/pagos" class="btn">Ir a pagos</a></div>
+    <div class="card"><h3>Consultas</h3><p>Revisa el historial de mensajes recibidos.</p><a href="/panel/consultas" class="btn">Ir a consultas</a></div>
+    <div class="card"><h3>Diagnóstico</h3><p>Valida SQL Server, Meta, OpenAI y configuración.</p><a href="/panel/diagnostico" class="btn">Ver diagnóstico</a></div>
+    {% endif %}
+    <div class="card"><h3>Pedidos</h3><p>Da seguimiento a pedidos confirmados, revisa detalles y actualiza su estado.</p><a href="/panel/pedidos" class="btn">Ir a pedidos</a></div>
+</div>
+{% endblock %}
