@@ -12,7 +12,10 @@ import java.util.List;
 
 public class TermiusProbeService extends AccessibilityService {
     private static final String TERMIUS_PACKAGE = "com.server.auditor.ssh.client";
-    private static final String MARKER = "TERMIUS_BRIDGE_9281";
+    private static final String R0_MARKER = "TERMIUS_BRIDGE_9281";
+    private static final String R1_WRITE_MARKER = "TERMIUS_WRITE_7319";
+    private static final String TERMINAL_VIEW_ID =
+        "com.server.auditor.ssh.client:id/terminalView";
     private static final String PREFS = "termius_probe";
     private static final int MAX_NODES = 600;
     private static final int MAX_CHARS = 48000;
@@ -62,7 +65,9 @@ public class TermiusProbeService extends AccessibilityService {
         StringBuilder out = new StringBuilder();
         int nodes = 0;
         int inputCandidates = 0;
-        boolean markerFound = false;
+        boolean r0MarkerFound = false;
+        boolean writeMarkerFound = false;
+        boolean terminalViewFound = false;
 
         while (!queue.isEmpty() && nodes < MAX_NODES && out.length() < MAX_CHARS) {
             NodeDepth current = queue.removeFirst();
@@ -85,8 +90,16 @@ public class TermiusProbeService extends AccessibilityService {
 
             String textValue = safe(text);
             String descValue = safe(desc);
-            if (textValue.contains(MARKER) || descValue.contains(MARKER)) {
-                markerFound = true;
+            String combined = textValue + "\n" + descValue;
+
+            if (combined.contains(R0_MARKER)) {
+                r0MarkerFound = true;
+            }
+            if (combined.contains(R1_WRITE_MARKER)) {
+                writeMarkerFound = true;
+            }
+            if (TERMINAL_VIEW_ID.equals(viewId)) {
+                terminalViewFound = true;
             }
 
             indent(out, current.depth);
@@ -112,26 +125,35 @@ public class TermiusProbeService extends AccessibilityService {
         String header =
             "eventType=" + AccessibilityEvent.eventTypeToString(event.getEventType()) + "\n" +
             "package=" + safe(event.getPackageName()) + "\n" +
-            "marker=" + MARKER + "\n" +
-            "markerFound=" + markerFound + "\n" +
+            "r0MarkerFound=" + r0MarkerFound + "\n" +
+            "writeMarker=" + R1_WRITE_MARKER + "\n" +
+            "writeMarkerFound=" + writeMarkerFound + "\n" +
+            "terminalViewFound=" + terminalViewFound + "\n" +
             "inputCandidates=" + inputCandidates + "\n" +
             "nodeCount=" + nodes + "\n" +
             "sdk=" + Build.VERSION.SDK_INT + "\n\n";
 
-        prefs().edit()
+        SharedPreferences.Editor editor = prefs().edit()
             .putBoolean("service_connected", true)
-            .putBoolean("marker_found", markerFound)
+            .putBoolean("r0_marker_found", r0MarkerFound)
+            .putBoolean("write_marker_found", writeMarkerFound)
+            .putBoolean("terminal_view_found", terminalViewFound)
             .putInt("input_candidates", inputCandidates)
             .putInt("node_count", nodes)
             .putLong("timestamp", System.currentTimeMillis())
-            .putString("snapshot", trim(header + out))
-            .apply();
+            .putString("snapshot", trim(header + out));
+
+        if (writeMarkerFound) {
+            editor.putLong("write_marker_timestamp", System.currentTimeMillis());
+        }
+        editor.apply();
     }
 
     private void saveEmpty(String message) {
         prefs().edit()
             .putBoolean("service_connected", true)
-            .putBoolean("marker_found", false)
+            .putBoolean("write_marker_found", false)
+            .putBoolean("terminal_view_found", false)
             .putInt("input_candidates", 0)
             .putInt("node_count", 0)
             .putLong("timestamp", System.currentTimeMillis())
