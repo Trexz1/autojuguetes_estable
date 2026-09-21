@@ -1,0 +1,61 @@
+name: Build Termius Bridge Pilot
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "android/termius-bridge-pilot/**"
+      - ".github/workflows/termius-bridge-pilot.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Build debug APK
+        working-directory: android/termius-bridge-pilot
+        run: gradle --no-daemon --stacktrace :app:assembleDebug
+
+      - name: Verify APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="android/termius-bridge-pilot/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+
+          BUILD_TOOLS="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          "$BUILD_TOOLS/apksigner" verify --verbose "$APK"
+
+          mkdir -p dist
+          cp "$APK" dist/TermiusBridge-Pilot-R0.apk
+          sha256sum dist/TermiusBridge-Pilot-R0.apk | tee dist/SHA256SUMS.txt
+          unzip -l dist/TermiusBridge-Pilot-R0.apk | tee dist/APK-CONTENTS.txt
+
+      - name: Upload pilot artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: termius-bridge-pilot-r0
+          path: |
+            dist/TermiusBridge-Pilot-R0.apk
+            dist/SHA256SUMS.txt
+            dist/APK-CONTENTS.txt
+          if-no-files-found: error
+          retention-days: 14
