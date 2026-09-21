@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Termius Bridge Pilot</string>
-    <string name="accessibility_description">Piloto local que inspecciona únicamente la jerarquía de accesibilidad de Termius para comprobar si la salida de terminal puede leerse. No incluye permiso de Internet ni envía comandos.</string>
+    <string name="app_name">Termius Bridge R1</string>
+    <string name="accessibility_description">Lector local restringido a Termius. R1 detecta la vista del terminal y confirma marcadores de salida. No incluye permiso de Internet.</string>
+    <string name="ime_subtype_label">Termius Bridge Keyboard</string>
 </resources>
